@@ -3,21 +3,19 @@
  *
  * Copyright (c) 2011 IBM Czech Republic, spol. s r.o.
  */
-package net.kelt.android.translationdiff;
+package net.kelt.android.translationdiff.items;
 
 /**
- * @author Ondra
+ * Item representing generic resource with all attributes
+ * 
+ * @author Ondrej Zima
  * @version $Revision: 1.2 $ 8.10.2011
  */
 public class ResourceItem {
-	public ItemType itemType;
+	protected ItemType itemType;
 	protected String itemName = null;
 	protected String itemValue = null;
 	protected int childItems = 0;
-
-	enum ItemType {
-		ITEM_STRING, ITEM_PLURALS, ITEM_STRING_ARRAY, ITEM_ARRAY, ITEM_INTEGER_ARRAY
-	}
 
 	public String getName() {
 		return itemName;

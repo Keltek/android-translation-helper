@@ -3,10 +3,12 @@
  *
  * Copyright (c) 2011 IBM Czech Republic, spol. s r.o.
  */
-package net.kelt.android.translationdiff;
+package net.kelt.android.translationdiff.items;
 
 /**
- * @author Ondra
+ * Item type representing generic string array like &lt;string-array name=""&gt;&lt;/string-array&gt; with items
+ * 
+ * @author Ondrej Zima
  * @version $Revision: 1.2 $ 7.10.2011
  */
 public class StringArrayItem extends ResourceItem {

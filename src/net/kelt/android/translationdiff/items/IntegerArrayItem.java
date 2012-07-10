@@ -3,10 +3,12 @@
  *
  * Copyright (c) 2011 IBM Czech Republic, spol. s r.o.
  */
-package net.kelt.android.translationdiff;
+package net.kelt.android.translationdiff.items;
 
 /**
- * @author Ondra
+ * Item type representing integer array item like &lt;integer-array name=""&gt;&lt;/integer-array&gt; with items
+ * 
+ * @author Ondrej Zima
  * @version $Revision: 1.2 $ 7.10.2011
  */
 public class IntegerArrayItem extends ResourceItem {
