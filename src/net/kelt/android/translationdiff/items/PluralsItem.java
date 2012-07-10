@@ -3,10 +3,12 @@
  *
  * Copyright (c) 2011 IBM Czech Republic, spol. s r.o.
  */
-package net.kelt.android.translationdiff;
+package net.kelt.android.translationdiff.items;
 
 /**
- * @author Ondra
+ * * Item type representing plurals items like &lt;plurals name=""&gt;&lt;/plurals&gt;
+ * 
+ * @author Ondrej Zima
  * @version $Revision: 1.2 $ 7.10.2011
  */
 public class PluralsItem extends ResourceItem {

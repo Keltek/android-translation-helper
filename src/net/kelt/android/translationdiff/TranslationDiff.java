@@ -6,6 +6,7 @@
 package net.kelt.android.translationdiff;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
 import java.util.List;
@@ -14,7 +15,13 @@ import java.util.Vector;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 
-import net.kelt.android.translationdiff.ResourceItem.ItemType;
+import net.kelt.android.translationdiff.items.ArrayItem;
+import net.kelt.android.translationdiff.items.IntegerArrayItem;
+import net.kelt.android.translationdiff.items.ItemType;
+import net.kelt.android.translationdiff.items.PluralsItem;
+import net.kelt.android.translationdiff.items.ResourceItem;
+import net.kelt.android.translationdiff.items.StringArrayItem;
+import net.kelt.android.translationdiff.items.StringItem;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,9 +42,32 @@ public class TranslationDiff {
 		// Set out
 		out = new PrintStream(System.out, true, "UTF-8");
 		// Parse input
-		if (args.length != 2) {
+		if (args.length == 0 || args.length > 2) {
 			printHelp();
 		} else {
+			// If arg is only one, check it for directory
+			if (args.length == 1) {
+				// Assuming first arg as directory
+				String dir = args[0];
+				File fdir = new File(dir);
+				if (!fdir.isDirectory()) {
+					printHelp();
+					System.exit(0);
+				}
+				// Ok, arg is directory, get the content filtered by "xml" pattern
+				FilenameFilter fnf = new FilenameFilter() {
+					@Override
+					public boolean accept(File dir, String name) {
+						return name.endsWith(".xml");
+					}
+				};
+				String[] flist = fdir.list(fnf);
+				for (String fname : flist) {
+					outln("Filename: " + fname);
+				}
+				System.exit(0);
+			}
+			// Get args as input files
 			String F_SRC = args[0];
 			String F_DST = args[1];
 			try {
@@ -72,10 +102,10 @@ public class TranslationDiff {
 							outln("STRING name=\"" + sname + "\"==\"" + si.getValue() + "\" not in TRAN file");
 						} else {
 							if (si.getItemType() == ItemType.ITEM_PLURALS) {
-								outln("PLURALS name=\"" + sname + "\":\"" + si.childItems + "!=" + diItems
+								outln("PLURALS name=\"" + sname + "\":\"" + si.getChildItems() + "!=" + diItems
 										+ "\" not in TRAN file or different item count");
 							} else {
-								outln("ARRAY[" + si.getItemType() + "] name=\"" + sname + "\":\"" + si.childItems + "!=" + diItems
+								outln("ARRAY[" + si.getItemType() + "] name=\"" + sname + "\":\"" + si.getChildItems() + "!=" + diItems
 										+ "\" not in TRAN file or different item count");
 							}
 						}
@@ -105,10 +135,10 @@ public class TranslationDiff {
 							outln("STRING name=\"" + dname + "\"==\"" + di.getValue() + "\" not in ORIG file");
 						} else {
 							if (di.getItemType() == ItemType.ITEM_PLURALS) {
-								outln("PLURALS name=\"" + dname + "\":\"" + di.childItems
+								outln("PLURALS name=\"" + dname + "\":\"" + di.getChildItems()
 										+ "\" not in ORIG file or different item count");
 							} else {
-								outln("ARRAY[" + di.getItemType() + "] name=\"" + dname + "\":\"" + di.childItems
+								outln("ARRAY[" + di.getItemType() + "] name=\"" + dname + "\":\"" + di.getChildItems()
 										+ "\" not in ORIG file or different item count");
 							}
 						}
@@ -124,7 +154,7 @@ public class TranslationDiff {
 
 	private static void printHelp() {
 		outln("Translation Diff:");
-		outln("Usage: TranslationDiff [origFile] [transFile]");
+		outln("Usage: TranslationDiff [resource directory] | [origFile] [transFile]");
 	}
 
 	private static void outln(String output) {
@@ -135,6 +165,9 @@ public class TranslationDiff {
 		File file = new File(F_SRC);
 		if (file.exists() == false) {
 			outln("Original file \"" + F_SRC + "\" not exists.");
+			System.exit(-1);
+		} else if (!file.isFile()) {
+			outln("Original file \"" + F_SRC + "\" is not a file.");
 			System.exit(-1);
 		} else {
 			outln("Original file: " + F_SRC);
@@ -233,6 +266,9 @@ public class TranslationDiff {
 		File file = new File(F_DST);
 		if (file.exists() == false) {
 			outln("Translation file \"" + F_DST + "\" not exists.");
+			System.exit(-1);
+		} else if (!file.isFile()) {
+			outln("Translation file \"" + F_DST + "\" is not a file.");
 			System.exit(-1);
 		} else {
 			outln("Translation file: " + F_DST);
