@@ -7,7 +7,7 @@ After short run it will create a simple report with
 - what is included in translation file but not in original file
 
 Supported elements: <array>, <integer-array>, <string-array>,
-<plurals>,<string>
+<plurals>, <string>
 
 For simple string item, the value is displayed. For other items, number
 of items is compared and if differ, number of original items and
@@ -17,3 +17,7 @@ Feel free to use it under GNU GPL.
 Keltek
 
 TODO: make a gui ;)
+directory processing - as first (and only one) argument specify the resource
+directory where detect the original English text (values), enumerate all xml
+files and compare each with specific translation one in values-<country code>
+directory
