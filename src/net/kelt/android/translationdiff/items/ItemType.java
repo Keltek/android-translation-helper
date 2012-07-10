@@ -6,7 +6,7 @@
 package net.kelt.android.translationdiff.items;
 
 /**
- * Enumeration for item types
+ * Enumeration for item types used for resources
  * 
  * @author Ondrej Zima
  * @version $Revision: 1.2 $ 10.7.2012
