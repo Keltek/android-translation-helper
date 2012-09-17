@@ -45,106 +45,64 @@ public class TranslationDiff {
 		if (args.length == 0 || args.length > 2) {
 			printHelp();
 		} else {
-			// If arg is only one, check it for directory
-			if (args.length == 1) {
-				// Assuming first arg as directory
-				String dir = args[0];
-				File fdir = new File(dir);
-				if (!fdir.isDirectory()) {
-					printHelp();
-					System.exit(0);
-				}
-				// Ok, arg is directory, get the content filtered by "xml" pattern
-				FilenameFilter fnf = new FilenameFilter() {
-					@Override
-					public boolean accept(File dir, String name) {
-						return name.endsWith(".xml");
-					}
-				};
-				String[] flist = fdir.list(fnf);
-				for (String fname : flist) {
-					outln("Filename: " + fname);
-				}
-				System.exit(0);
-			}
-			// Get args as input files
-			String F_SRC = args[0];
-			String F_DST = args[1];
 			try {
-				// Load Original file
-				List<ResourceItem> srcEl = loadOrigFile(F_SRC);
-				// Load Translation file
-				List<ResourceItem> dstEl = loadTranFile(F_DST);
-				outln("### Comparing\u2026    ###");
-				// Find all in source but not in destination
-				outln("### ORIG >>> TRAN ###");
-				for (ResourceItem si : srcEl) {
-					String sname = si.getName();
-					int diItems = 0;
-					boolean found = false;
-					for (ResourceItem di : dstEl) {
-						if (si.getItemType() == ItemType.ITEM_STRING) {
-							if (sname.equalsIgnoreCase(di.getName())) {
-								found = true;
-								break;
-							}
-						} else if (si.getItemType() == ItemType.ITEM_PLURALS || si.getItemType() == ItemType.ITEM_STRING_ARRAY
-								|| si.getItemType() == ItemType.ITEM_ARRAY || si.getItemType() == ItemType.ITEM_INTEGER_ARRAY) {
-							diItems = di.getChildItems();
-							if (sname.equalsIgnoreCase(di.getName()) && si.getChildItems() == di.getChildItems()) {
-								found = true;
-								break;
-							}
+				List<ResourceItem> srcEl = null;
+				List<ResourceItem> dstEl = null;
+				// If arg is only one, check it for directory
+				if (args.length == 1) {
+					// Assuming first arg as directory
+					String dir = args[0];
+					File fdir = new File(dir);
+					if (!fdir.isDirectory()) {
+						// One and only argument is file - assuming the translation file
+						String tran_fname = args[0];
+						File temp_tran = new File(tran_fname);
+						if (!temp_tran.exists()) {
+							outln("Translation file \"" + tran_fname + "\" did not exists!");
+							System.exit(0);
 						}
-					}
-					if (!found) {
-						if (si.getItemType() == ItemType.ITEM_STRING) {
-							outln("STRING name=\"" + sname + "\"==\"" + si.getValue() + "\" not in TRAN file");
-						} else {
-							if (si.getItemType() == ItemType.ITEM_PLURALS) {
-								outln("PLURALS name=\"" + sname + "\":\"" + si.getChildItems() + "!=" + diItems
-										+ "\" not in TRAN file or different item count");
-							} else {
-								outln("ARRAY[" + si.getItemType() + "] name=\"" + sname + "\":\"" + si.getChildItems() + "!=" + diItems
-										+ "\" not in TRAN file or different item count");
-							}
+						StringBuffer tdir = new StringBuffer();
+						tdir.append(temp_tran.getParent().substring(0, temp_tran.getParent().lastIndexOf('/')));
+						tdir.append("/values");
+						String orig_fname = getOrigFileFromTranslation(temp_tran);
+						if (!new File(orig_fname).exists()) {
+							outln("Original file \"" + orig_fname + "\" did not exists!");
+							System.exit(0);
 						}
+						srcEl = loadOrigFile(orig_fname);
+						dstEl = loadTranFile(tran_fname);
+					} else {
+						// One and only argument is directory - assusming comparing whole directory
+						// Create FileNameFilter - get the content filtered by "xml" pattern
+						FilenameFilter fnf = new FilenameFilter() {
+							@Override
+							public boolean accept(File dir, String name) {
+								return name.endsWith(".xml");
+							}
+						};
+						//
+						outln("### Performing translation comparation of whole directory. In many changes the output can be very long. #######");
+						//
+						String[] flist = fdir.list(fnf);
+						for (String tran_fname : flist) {
+							// For every xml filename in this directory preform a parsing and checking
+							File tranFile = new File(fdir.getPath() + "/" + tran_fname);
+							String orig_fname = getOrigFileFromTranslation(tranFile);
+							// outln("Original file: " + orig_fname);
+							// outln("Translation file: " + tranFile.getPath());
+							srcEl = loadOrigFile(orig_fname);
+							dstEl = loadTranFile(tranFile.getPath());
+							compareLoadedFiles(srcEl, dstEl);
+							outln("###############################################################################################################");
+						}
+						System.exit(0);
 					}
+				} else {
+					// Get args as input files
+					srcEl = loadOrigFile(args[0]);
+					dstEl = loadTranFile(args[1]);
 				}
-				// Find all in dst but not in src
-				outln("### ORIG <<< TRAN ###");
-				for (ResourceItem di : dstEl) {
-					String dname = di.getName();
-					boolean found = false;
-					for (ResourceItem si : srcEl) {
-						if (di.getItemType() == ItemType.ITEM_STRING) {
-							if (dname.equalsIgnoreCase(si.getName())) {
-								found = true;
-								break;
-							}
-						} else if (di.getItemType() == ItemType.ITEM_PLURALS || di.getItemType() == ItemType.ITEM_STRING_ARRAY
-								|| di.getItemType() == ItemType.ITEM_ARRAY || di.getItemType() == ItemType.ITEM_INTEGER_ARRAY) {
-							if (dname.equalsIgnoreCase(si.getName()) && di.getChildItems() == si.getChildItems()) {
-								found = true;
-								break;
-							}
-						}
-					}
-					if (!found) {
-						if (di.getItemType() == ItemType.ITEM_STRING) {
-							outln("STRING name=\"" + dname + "\"==\"" + di.getValue() + "\" not in ORIG file");
-						} else {
-							if (di.getItemType() == ItemType.ITEM_PLURALS) {
-								outln("PLURALS name=\"" + dname + "\":\"" + di.getChildItems()
-										+ "\" not in ORIG file or different item count");
-							} else {
-								outln("ARRAY[" + di.getItemType() + "] name=\"" + dname + "\":\"" + di.getChildItems()
-										+ "\" not in ORIG file or different item count");
-							}
-						}
-					}
-				}
-				outln("#####################");
+				compareLoadedFiles(srcEl, dstEl);
 			} catch (Exception e) {
 				outln("Error: " + e);
 				e.printStackTrace();
@@ -154,7 +112,7 @@ public class TranslationDiff {
 
 	private static void printHelp() {
 		outln("Translation Diff:");
-		outln("Usage: TranslationDiff [resource directory] | [origFile] [transFile]");
+		outln("Usage: TranslationDiff [translation directory] | [translation file] | [original file] [translation file]");
 	}
 
 	private static void outln(String output) {
@@ -190,7 +148,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						String elValue = e.getTextContent();
 						srcEl.add(new StringItem(elName, elValue));
-						// outln("ORIG: found translatable string: " + elName + "=" + elValue);
+						// outln("ORIGINAL: found translatable string: " + elName + "=" + elValue);
 					}
 				}
 			} else if (n.getNodeName().equalsIgnoreCase("plurals")) {
@@ -201,9 +159,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							srcEl.add(new PluralsItem(elName, plList.getLength()));
-							// outln("ORIG: found plurals: " + elName + ", #=" + plList.getLength());
+							// outln("ORIGINAL: found plurals: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("ORIG: empty plurals: " + elName);
+							outln("ORIGINAL: empty plurals: " + elName);
 						}
 					}
 				}
@@ -215,9 +173,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							srcEl.add(new StringArrayItem(elName, plList.getLength()));
-							// outln("ORIG: found string-array: " + elName + ", #=" + plList.getLength());
+							// outln("ORIGINAL: found string-array: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("ORIG: empty string-array: " + elName);
+							outln("ORIGINAL: empty string-array: " + elName);
 						}
 					}
 				}
@@ -229,9 +187,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							srcEl.add(new ArrayItem(elName, plList.getLength()));
-							// outln("ORIG: found array: " + elName + ", #=" + plList.getLength());
+							// outln("ORIGINAL: found array: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("ORIG: empty array: " + elName);
+							outln("ORIGINAL: empty array: " + elName);
 						}
 					}
 				}
@@ -243,9 +201,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							srcEl.add(new ArrayItem(elName, plList.getLength()));
-							// outln("ORIG: found integer-array: " + elName + ", #=" + plList.getLength());
+							// outln("ORIGINAL: found integer-array: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("ORIG: empty integer-array: " + elName);
+							outln("ORIGINAL: empty integer-array: " + elName);
 						}
 					}
 				}
@@ -256,7 +214,7 @@ public class TranslationDiff {
 			} else if (n.getNodeName().equalsIgnoreCase("skip")) {
 				// skip
 			} else {
-				outln("ORIG: unknown node: " + n.getNodeName() + "::" + n.getNodeValue());
+				outln("ORIGINAL: unknown node: " + n.getNodeName() + "::" + n.getNodeValue());
 			}
 		}
 		return srcEl;
@@ -291,7 +249,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						String elValue = e.getTextContent();
 						dstEl.add(new StringItem(elName, elValue));
-						// outln("TRAN: found translatable string: " + elName + "=" + elValue);
+						// outln("TRANSLATION: found translatable string: " + elName + "=" + elValue);
 					}
 				}
 			} else if (n.getNodeName().equalsIgnoreCase("plurals")) {
@@ -302,9 +260,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							dstEl.add(new PluralsItem(elName, plList.getLength()));
-							// outln("TRAN: found plurals: " + elName + ", #=" + plList.getLength());
+							// outln("TRANSLATION: found plurals: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("TRAN: empty plurals: " + elName);
+							outln("TRANSLATION: empty plurals: " + elName);
 						}
 					}
 				}
@@ -316,9 +274,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							dstEl.add(new StringArrayItem(elName, plList.getLength()));
-							// outln("TRAN: found string-array: " + elName + ", #=" + plList.getLength());
+							// outln("TRANSLATION: found string-array: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("TRAN: empty string-array: " + elName);
+							outln("TRANSLATION: empty string-array: " + elName);
 						}
 					}
 				}
@@ -330,9 +288,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							dstEl.add(new ArrayItem(elName, plList.getLength()));
-							// outln("TRAN: found array: " + elName + ", #=" + plList.getLength());
+							// outln("TRANSLATION: found array: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("TRAN: empty array: " + elName);
+							outln("TRANSLATION: empty array: " + elName);
 						}
 					}
 				}
@@ -344,9 +302,9 @@ public class TranslationDiff {
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
 							dstEl.add(new IntegerArrayItem(elName, plList.getLength()));
-							// outln("TRAN: found integer-array: " + elName + ", #=" + plList.getLength());
+							// outln("TRANSLATION: found integer-array: " + elName + ", #=" + plList.getLength());
 						} else {
-							outln("TRAN: empty integer-array: " + elName);
+							outln("TRANSLATION: empty integer-array: " + elName);
 						}
 					}
 				}
@@ -357,9 +315,90 @@ public class TranslationDiff {
 			} else if (n.getNodeName().equalsIgnoreCase("skip")) {
 				// skip
 			} else {
-				outln("TRAN: unknown node: " + n.getNodeName() + "::" + n.getNodeValue());
+				outln("TRANSLATION: unknown node: " + n.getNodeName() + "::" + n.getNodeValue());
 			}
 		}
 		return dstEl;
+	}
+
+	private static void compareLoadedFiles(List<ResourceItem> srcEl, List<ResourceItem> dstEl) throws Exception {
+		outln("... Comparing ...");
+		// Find all in source but not in destination
+		outln("### changes from ORIGINAL >>> to >>> TRANSLATION ###");
+		for (ResourceItem si : srcEl) {
+			String sname = si.getName();
+			int diItems = 0;
+			boolean found = false;
+			for (ResourceItem di : dstEl) {
+				if (si.getItemType() == ItemType.ITEM_STRING) {
+					if (sname.equalsIgnoreCase(di.getName())) {
+						found = true;
+						break;
+					}
+				} else if (si.getItemType() == ItemType.ITEM_PLURALS || si.getItemType() == ItemType.ITEM_STRING_ARRAY
+						|| si.getItemType() == ItemType.ITEM_ARRAY || si.getItemType() == ItemType.ITEM_INTEGER_ARRAY) {
+					if (sname.equalsIgnoreCase(di.getName())) {
+						diItems = di.getChildItems();
+						if (sname.equalsIgnoreCase(di.getName()) && si.getChildItems() == di.getChildItems()) {
+							found = true;
+							break;
+						}
+					}
+				}
+			}
+			if (!found) {
+				if (si.getItemType() == ItemType.ITEM_STRING) {
+					outln("STRING name=\"" + sname + "\"==\"" + si.getValue() + "\" not in TRANSLATION file");
+				} else {
+					if (si.getItemType() == ItemType.ITEM_PLURALS) {
+						outln("PLURALS name=\"" + sname + "\":\"" + si.getChildItems() + "!=" + diItems
+								+ "\" not in TRANSLATION file or different item count");
+					} else {
+						outln("ARRAY[" + si.getItemType() + "] name=\"" + sname + "\":\"" + si.getChildItems() + "!=" + diItems
+								+ "\" not in TRANSLATION file or different item count");
+					}
+				}
+			}
+		}
+		// Find all in dst but not in src
+		outln("### changes to ORIGINAL <<< from <<< TRANSLATION ###");
+		for (ResourceItem di : dstEl) {
+			String dname = di.getName();
+			boolean found = false;
+			for (ResourceItem si : srcEl) {
+				if (di.getItemType() == ItemType.ITEM_STRING) {
+					if (dname.equalsIgnoreCase(si.getName())) {
+						found = true;
+						break;
+					}
+				} else if (di.getItemType() == ItemType.ITEM_PLURALS || di.getItemType() == ItemType.ITEM_STRING_ARRAY
+						|| di.getItemType() == ItemType.ITEM_ARRAY || di.getItemType() == ItemType.ITEM_INTEGER_ARRAY) {
+					if (dname.equalsIgnoreCase(si.getName()) && di.getChildItems() == si.getChildItems()) {
+						found = true;
+						break;
+					}
+				}
+			}
+			if (!found) {
+				if (di.getItemType() == ItemType.ITEM_STRING) {
+					outln("STRING name=\"" + dname + "\"==\"" + di.getValue() + "\" not in ORIGINAL file");
+				} else {
+					if (di.getItemType() == ItemType.ITEM_PLURALS) {
+						outln("PLURALS name=\"" + dname + "\":\"" + di.getChildItems()
+								+ "\" not in ORIGINAL file or different item count");
+					} else {
+						outln("ARRAY[" + di.getItemType() + "] name=\"" + dname + "\":\"" + di.getChildItems()
+								+ "\" not in ORIGINAL file or different item count");
+					}
+				}
+			}
+		}
+	}
+
+	private static String getOrigFileFromTranslation(File tranFileName) {
+		StringBuffer tdir = new StringBuffer();
+		tdir.append(tranFileName.getParent().substring(0, tranFileName.getParent().lastIndexOf('/')));
+		tdir.append("/values");
+		return tdir + "/" + tranFileName.getName();
 	}
 }
