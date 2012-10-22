@@ -62,8 +62,10 @@ public class TranslationDiff {
 							System.exit(0);
 						}
 						StringBuffer tdir = new StringBuffer();
-						tdir.append(temp_tran.getParent().substring(0, temp_tran.getParent().lastIndexOf('/')));
-						tdir.append("/values");
+						if (temp_tran.getParent().lastIndexOf('/') != -1) {
+							tdir.append(temp_tran.getParent().substring(0, temp_tran.getParent().lastIndexOf('/'))).append("/");
+						}
+						tdir.append("values");
 						String orig_fname = getOrigFileFromTranslation(temp_tran);
 						if (!new File(orig_fname).exists()) {
 							outln("Original file \"" + orig_fname + "\" did not exists!");
@@ -397,8 +399,10 @@ public class TranslationDiff {
 
 	private static String getOrigFileFromTranslation(File tranFileName) {
 		StringBuffer tdir = new StringBuffer();
-		tdir.append(tranFileName.getParent().substring(0, tranFileName.getParent().lastIndexOf('/')));
-		tdir.append("/values");
+		if (tranFileName.getParent().lastIndexOf('/') != -1) {
+			tdir.append(tranFileName.getParent().substring(0, tranFileName.getParent().lastIndexOf('/'))).append("/");
+		}
+		tdir.append("values");
 		return tdir + "/" + tranFileName.getName();
 	}
 }
