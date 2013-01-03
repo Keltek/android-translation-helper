@@ -1,6 +1,10 @@
 Android Translation Helper
 ==========================
 
+History:
+v1.2 - check translation file for duplicated elements (stil have ToDo to
+       recognize same element name with different targets)
+
 This is an Android Translation Helper (or differ). This tool is designed
 to help a translating partialy translated files for Android platform.
 It takes a source (original file - usualy English file from

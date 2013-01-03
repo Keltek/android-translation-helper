@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.PrintStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Vector;
 
@@ -90,8 +91,6 @@ public class TranslationDiff {
 							// For every xml filename in this directory preform a parsing and checking
 							File tranFile = new File(fdir.getPath() + "/" + tran_fname);
 							String orig_fname = getOrigFileFromTranslation(tranFile);
-							// outln("Original file: " + orig_fname);
-							// outln("Translation file: " + tranFile.getPath());
 							srcEl = loadOrigFile(orig_fname);
 							dstEl = loadTranFile(tranFile.getPath());
 							compareLoadedFiles(srcEl, dstEl);
@@ -113,7 +112,7 @@ public class TranslationDiff {
 	}
 
 	private static void printHelp() {
-		outln("Translation Diff:");
+		outln("Translation Diff v1.2");
 		outln("Usage: TranslationDiff [translation directory] | [translation file] | [original file] [translation file]");
 	}
 
@@ -233,6 +232,7 @@ public class TranslationDiff {
 		} else {
 			outln("Translation file: " + F_DST);
 		}
+		Collection<String> dupeMap = new Vector<String>();
 		List<ResourceItem> dstEl = new Vector<ResourceItem>();
 		DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		DocumentBuilder db = dbf.newDocumentBuilder();
@@ -250,6 +250,7 @@ public class TranslationDiff {
 					if (e.getAttribute("translatable") != null && !e.getAttribute("translatable").equalsIgnoreCase("false")) {
 						String elName = e.getAttribute("name");
 						String elValue = e.getTextContent();
+						CheckDuplicate(dupeMap, elName);
 						dstEl.add(new StringItem(elName, elValue));
 						// outln("TRANSLATION: found translatable string: " + elName + "=" + elValue);
 					}
@@ -261,6 +262,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new PluralsItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found plurals: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -275,6 +277,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new StringArrayItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found string-array: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -289,6 +292,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new ArrayItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found array: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -303,6 +307,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new IntegerArrayItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found integer-array: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -404,5 +409,13 @@ public class TranslationDiff {
 		}
 		tdir.append("values");
 		return tdir + "/" + tranFileName.getName();
+	}
+
+	private static void CheckDuplicate(Collection<String> elementNames, String name) {
+		if (elementNames.contains(name)) {
+			outln("WARNING!!! Translation file contains duplicated elements: elementName=" + name);
+		} else {
+			elementNames.add(name);
+		}
 	}
 }
