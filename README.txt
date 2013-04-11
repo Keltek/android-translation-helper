@@ -2,6 +2,7 @@ Android Translation Helper
 ==========================
 
 History:
+v1.3 - added "product" attribute support in <string>
 v1.2 - check translation file for duplicated elements (stil have ToDo to
        recognize same element name with different targets)
 
