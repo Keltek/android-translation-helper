@@ -147,9 +147,8 @@ public class TranslationDiff {
 					Element e = (Element) n;
 					if (e.getAttribute("translatable") != null && !e.getAttribute("translatable").equalsIgnoreCase("false")) {
 						String elName = e.getAttribute("name");
-						String elProduct = e.getAttribute("product");
 						String elValue = e.getTextContent();
-						srcEl.add(new StringItem(elName, elValue, elProduct));
+						srcEl.add(new StringItem(elName, elValue));
 						// outln("ORIGINAL: found translatable string: " + elName + "=" + elValue);
 					}
 				}
@@ -209,8 +208,6 @@ public class TranslationDiff {
 						}
 					}
 				}
-			} else if (n.getNodeName().equalsIgnoreCase("bool")) {
-				// skip
 			} else if (n.getNodeName().equalsIgnoreCase("#comment")) {
 				// skip
 			} else if (n.getNodeName().equalsIgnoreCase("#text")) {
@@ -252,10 +249,10 @@ public class TranslationDiff {
 					Element e = (Element) n;
 					if (e.getAttribute("translatable") != null && !e.getAttribute("translatable").equalsIgnoreCase("false")) {
 						String elName = e.getAttribute("name");
-						String elProduct = e.getAttribute("product");
 						String elValue = e.getTextContent();
-						CheckDuplicate(dupeMap, elName, elProduct);
-						dstEl.add(new StringItem(elName, elValue, elProduct));
+						CheckDuplicate(dupeMap, elName);
+						dstEl.add(new StringItem(elName, elValue));
+						// outln("TRANSLATION: found translatable string: " + elName + "=" + elValue);
 					}
 				}
 			} else if (n.getNodeName().equalsIgnoreCase("plurals")) {
@@ -265,7 +262,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
-							CheckDuplicate(dupeMap, elName, null);
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new PluralsItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found plurals: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -280,7 +277,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
-							CheckDuplicate(dupeMap, elName, null);
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new StringArrayItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found string-array: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -295,7 +292,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
-							CheckDuplicate(dupeMap, elName, null);
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new ArrayItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found array: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -310,7 +307,7 @@ public class TranslationDiff {
 						String elName = e.getAttribute("name");
 						NodeList plList = e.getElementsByTagName("item");
 						if (plList != null && plList.getLength() > 0) {
-							CheckDuplicate(dupeMap, elName, null);
+							CheckDuplicate(dupeMap, elName);
 							dstEl.add(new IntegerArrayItem(elName, plList.getLength()));
 							// outln("TRANSLATION: found integer-array: " + elName + ", #=" + plList.getLength());
 						} else {
@@ -318,8 +315,6 @@ public class TranslationDiff {
 						}
 					}
 				}
-			} else if (n.getNodeName().equalsIgnoreCase("bool")) {
-				// skip
 			} else if (n.getNodeName().equalsIgnoreCase("#comment")) {
 				// skip
 			} else if (n.getNodeName().equalsIgnoreCase("#text")) {
@@ -416,12 +411,11 @@ public class TranslationDiff {
 		return tdir + "/" + tranFileName.getName();
 	}
 
-	private static void CheckDuplicate(Collection<String> elementNames, String name, String product) {
-		if (elementNames.contains(name + (product != null ? ":" + product : ""))) {
-			outln("WARNING!!! Translation file contains duplicated elements: elementName=\"" + name + "\", product=\""
-					+ product + "\"");
+	private static void CheckDuplicate(Collection<String> elementNames, String name) {
+		if (elementNames.contains(name)) {
+			outln("WARNING!!! Translation file contains duplicated elements: elementName=" + name);
 		} else {
-			elementNames.add(name + (product != null ? ":" + product : ""));
+			elementNames.add(name);
 		}
 	}
 }

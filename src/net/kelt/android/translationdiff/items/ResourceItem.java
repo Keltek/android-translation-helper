@@ -14,7 +14,6 @@ package net.kelt.android.translationdiff.items;
 public class ResourceItem {
 	protected ItemType itemType;
 	protected String itemName = null;
-	protected String itemProduct = null;
 	protected String itemValue = null;
 	protected int childItems = 0;
 
@@ -32,9 +31,5 @@ public class ResourceItem {
 
 	public int getChildItems() {
 		return childItems;
-	}
-
-	public String getItemProduct() {
-		return itemProduct;
 	}
 }
