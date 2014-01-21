@@ -6,11 +6,20 @@
 package net.kelt.android.translationdiff.items;
 
 /**
- * Enumeration for item types used for resources
+ * Enumeration for item types used for resources.
  * 
  * @author Ondrej Zima
  * @version $Revision: 1.2 $ 10.7.2012
  */
 public enum ItemType {
-	ITEM_STRING, ITEM_PLURALS, ITEM_STRING_ARRAY, ITEM_ARRAY, ITEM_INTEGER_ARRAY
+	/** STRING element. */
+	ITEM_STRING,
+	/** PLURALS element. */
+	ITEM_PLURALS,
+	/** STRING-ARRAY element. */
+	ITEM_STRING_ARRAY,
+	/** ARRAY element. */
+	ITEM_ARRAY,
+	/** INTEGER-ARRAY element. */
+	ITEM_INTEGER_ARRAY
 }

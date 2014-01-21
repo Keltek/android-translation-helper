@@ -6,13 +6,21 @@
 package net.kelt.android.translationdiff.items;
 
 /**
- * Item type representing item like &lt;array name=""&gt;&lt;/array&gt; with items
+ * Item type representing item like &lt;array name=""&gt;&lt;/array&gt; with items.
  * 
  * @author Ondrej Zima
  * @version $Revision: 1.2 $ 7.10.2011
  */
 public class ArrayItem extends ResourceItem {
-	public ArrayItem(String name, int childs) {
+	/**
+	 * ArrayItem constructor.
+	 * 
+	 * @param name
+	 *          Name of array
+	 * @param childs
+	 *          Number of items in array
+	 */
+	public ArrayItem(final String name, final int childs) {
 		itemName = name;
 		itemValue = null;
 		childItems = childs;

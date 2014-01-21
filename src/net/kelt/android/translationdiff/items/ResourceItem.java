@@ -6,30 +6,38 @@
 package net.kelt.android.translationdiff.items;
 
 /**
- * Item representing generic resource with all attributes
+ * Item representing generic resource with all attributes.
  * 
  * @author Ondrej Zima
  * @version $Revision: 1.2 $ 8.10.2011
  */
 public class ResourceItem {
+	/** Element type of current resource item. */
 	protected ItemType itemType;
-	protected String itemName = null;
-	protected String itemValue = null;
+	/** Element name. */
+	protected String itemName;
+	/** Element value. */
+	protected String itemValue;
+	/** Number of child elements. */
 	protected int childItems = 0;
 
-	public String getName() {
+	/** @return Name of element */
+	public final String getName() {
 		return itemName;
 	}
 
-	public String getValue() {
+	/** @return Value of element */
+	public final String getValue() {
 		return itemValue;
 	}
 
-	public ItemType getItemType() {
+	/** @return Element type */
+	public final ItemType getItemType() {
 		return itemType;
 	}
 
-	public int getChildItems() {
+	/** @return Number of child elements */
+	public final int getChildItems() {
 		return childItems;
 	}
 }
